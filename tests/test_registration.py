@@ -36,6 +36,34 @@ def test_add_new_user(setup_database, connection):
     user = cursor.fetchone()
     assert user, "Kullanıcı veri tabanına eklenmiş olmalıdır."
 
+def test_authenticate_user_success(setup_database, connection):
+    """Başarılı kullanıcı doğrulamasını test eder."""
+    add_user('authuser', 'auth@example.com', 'authpassword')
+    assert authenticate_user('authuser', 'authpassword')
+
+def test_add_existing_user(setup_database, connection):
+    """Var olan bir kullanıcı adıyla kullanıcı eklemeye çalışmayı test eder."""
+    add_user('existinguser', 'existing@example.com', 'password123')
+    assert not add_user('existinguser', 'another@example.com', 'newpassword')
+
+def test_authenticate_non_existent_user(setup_database, connection):
+    """Var olmayan bir kullanıcıyla doğrulama yapmayı test eder."""
+    assert not authenticate_user('nonexistent', 'anypassword')
+
+def test_authenticate_wrong_password(setup_database, connection):
+    """Yanlış şifreyle doğrulama yapmayı test eder."""
+    add_user('wrongpassuser', 'wrongpass@example.com', 'correctpassword')
+    assert not authenticate_user('wrongpassuser', 'wrongpassword')
+
+def test_display_users(setup_database, connection, capfd):
+    """Kullanıcı listesinin doğru şekilde görüntülenmesini test eder."""
+    add_user('displayuser1', 'display1@example.com', 'pass1')
+    add_user('displayuser2', 'display2@example.com', 'pass2')
+    display_users()
+    out, err = capfd.readouterr()
+    assert "Kullanıcı adı: displayuser1, E-posta: display1@example.com" in out
+    assert "Kullanıcı adı: displayuser2, E-posta: display2@example.com" in out
+
 # İşte yazabileceğiniz bazı testler:
 """
 Var olan bir kullanıcı adıyla kullanıcı eklemeye çalışmayı test etme.
